@@ -60,20 +60,10 @@ class Enemy(Squere):
     def __init__(self, x_position, y_position, width, height, speed):
         super().__init__(x_position, y_position, width, height, speed)
 
-    def update(self, enemies):
+    def update(self):
         self.y_position += self.speed
-        if self.y_position + self.height > screen_height:
-            enemies.remove(self)
-            run = False  # add this line to stop the game loop
-            screen.fill((0, 0, 0))  # clear the screen
-            font = pg.font.Font(None, 36)
-            text = font.render("Game Over", True, (255, 255, 255))
-            screen.blit(text, (screen_width/2 - text.get_width()/2, screen_height/2 - text.get_height()/2))
-            pg.display.update()
-            pg.time.wait(2000)  # wait for 2 seconds before quitting
-            pg.quit()
-            sys.exit()
-
+        return self.y_position + self.height > screen_height
+    
 
 class Bullet(Squere):
     def __init__(self, x_position, y_position, length = 10, speed = 15):
@@ -86,15 +76,20 @@ class Bullet(Squere):
         if self.y_position + self.length < 0 or self.y_position - self.length > screen_height:
             bullets.remove(self)
 
-plr = Player(400, 600, 50, 50, 10)
+plr = Player(screen_width/2 - 50/2, 600, 50, 50, 10)
 
 
 bullets = []
 enemies = []
 time_counter = 0
+generateEnemys = True
 
 run = True
 while run:
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            run = False
+
     screen.fill((0, 0, 0))
 
     pg.draw.rect(screen, (255, 0, 0), plr.rect())
@@ -121,8 +116,14 @@ while run:
 
     if key[pg.K_p]:
         plr.shoot(bullets)
+        
+    if key[pg.K_r]:
+        plr = Player(400, 600, 50, 50, 10)
+        bullets = []
+        enemies = []
+        time_counter = 0
+        generateEnemys = True
     
-
     for bullet in bullets:
         pg.draw.rect(screen, (0, 0, 255), bullet.rect())
         bullet.update(bullets)
@@ -130,29 +131,61 @@ while run:
         
     if time_counter < 100:
         time_counter += 1
-    else:
-        enemy = Enemy(random.randint(0, screen_width - 50), 0, 50, 50, 10)
+    elif generateEnemys:
+        enemy = Enemy(random.randint(0, screen_width - 50), 0, 50, 50, 2)
         enemies.append(enemy)
         time_counter = 0
 
     for enemy in enemies:
         pg.draw.rect(screen, (0, 255, 0), enemy.rect())
 
-    for i, enemy in enumerate(enemies):
-        enemy_collision = enemy.rect().colliderect(plr.rect())
-        if enemy_collision:
-            enemies.pop(i)
-            print("Game Over")
-
+        
     for enemy in enemies:
         for bullet in bullets:
             if enemy.rect().colliderect(bullet.rect()):
                 enemies.remove(enemy)
                 bullets.remove(bullet)
                 break
+            
+        
+        enemy_collision = enemy.rect().colliderect(plr.rect())   
+        
+        if enemy.update() or enemy_collision:
+            screen.fill((0, 0, 0))
+            font = pg.font.Font(None, 36)
+            text = font.render("Game Over", True, (255, 255, 255))
+            screen.blit(text, (screen_width/2 - text.get_width()/2, screen_height/2 - text.get_height()/2))
+            pg.display.update()
+            pg.time.wait(2000)
+            screen.fill((0, 0, 0))
+            textTo = font.render("Trykk p \"r\" for å starte på nytt", True, (255, 255, 255)) 
+            screen.blit(textTo, (screen_width/2 - textTo.get_width()/2, screen_height/2 - textTo.get_height()/2))
+            pg.display.update()
 
-    for enemy in enemies:
-        enemy.update(enemies)
+            bullets = []
+            enemies = []
+            time_counter = 0
+            generateEnemys = False
+            plr = Player(0, 0, 0, 0, 0)
+
+            kjør = True
+            while kjør:
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        kjør = False
+                        run = False
+
+                key = pg.key.get_pressed()
+                if key[pg.K_r]:
+                    plr = Player(400, 600, 50, 50, 10)
+                    generateEnemys = True
+                    kjør = False
+                    
+
+                            
+                
+
+                    
 
 
     if plr.shoot_cooldown > 0:
@@ -160,9 +193,5 @@ while run:
     
     pg.display.update()
     clock.tick(60)
-
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            run = False
 
 pg.quit()
