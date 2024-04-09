@@ -82,6 +82,7 @@ plr = Player(screen_width/2 - 50/2, 600, 50, 50, 10)
 bullets = []
 enemies = []
 time_counter = 0
+score = 0
 generateEnemys = True
 
 run = True
@@ -91,6 +92,10 @@ while run:
             run = False
 
     screen.fill((0, 0, 0))
+    
+    font = pg.font.Font(None, 36)
+    text = font.render("Score: " + str(score), True, (255, 255, 255))
+    screen.blit(text, (10, 10))
 
     pg.draw.rect(screen, (255, 0, 0), plr.rect())
 
@@ -123,6 +128,7 @@ while run:
         enemies = []
         time_counter = 0
         generateEnemys = True
+        score = 0
     
     for bullet in bullets:
         pg.draw.rect(screen, (0, 0, 255), bullet.rect())
@@ -145,6 +151,7 @@ while run:
             if enemy.rect().colliderect(bullet.rect()):
                 enemies.remove(enemy)
                 bullets.remove(bullet)
+                score += 10
                 break
             
         
@@ -166,6 +173,7 @@ while run:
             enemies = []
             time_counter = 0
             generateEnemys = False
+            score = 0
             plr = Player(0, 0, 0, 0, 0)
 
             kjør = True
@@ -180,11 +188,6 @@ while run:
                     plr = Player(400, 600, 50, 50, 10)
                     generateEnemys = True
                     kjør = False
-                    
-
-                            
-                
-
                     
 
 
