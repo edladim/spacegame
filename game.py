@@ -5,7 +5,7 @@ import sys
 pg.init()
 
 screen_width = 600
-screen_height = 900
+screen_height = 800
 
 screen = pg.display.set_mode((screen_width, screen_height))
 pg.display.set_caption("Game")
@@ -96,11 +96,11 @@ class Powerup(Square):
 
 plr = Player(screen_width/2 - 50/2, 600, 60, 60, 10)
 
-background = pg.transform.scale((pg.image.load("background.jpeg")), (screen_width, screen_height))
-plr_pic = pg.transform.scale((pg.image.load("ship.png")), (80, 80))
-enemy_pic = pg.transform.scale((pg.image.load("enemy.png")), (80, 40))
-bullet_pic = pg.transform.scale((pg.image.load("bullet.png")), (40, 40))
-powerup_pic = pg.transform.scale((pg.image.load("powerup.png")), (50, 50))
+background = pg.transform.scale((pg.image.load("pics/background.jpeg")), (screen_width, screen_height))
+plr_pic = pg.transform.scale((pg.image.load("pics/ship.png")), (80, 80))
+enemy_pic = pg.transform.scale((pg.image.load("pics/enemy.png")), (80, 40))
+bullet_pic = pg.transform.scale((pg.image.load("pics/bullet.png")), (40, 40))
+powerup_pic = pg.transform.scale((pg.image.load("pics/powerup.png")), (50, 50))
 #exsplosion_pic = pg.transform.scale((pg.image.load("exsplosion.png")), (50, 50))
 
 
@@ -111,12 +111,12 @@ score = 0
 generate_enemies = True
 speed = 1
 highscore = 0
-
 powerups = []
-powerup_interval = 600
+powerup_interval = 1000
 iteration = 0
 enemy_spawnrate = 200
 enemy_cooldown = 0
+filename = "highscore.txt"
 
 
 run = True
@@ -180,6 +180,7 @@ while run:
         generate_enemies = True
         score = 0
         speed = 1
+        enemy_spawnrate = 200
 
     #generate bullets
     if key[pg.K_p]:
@@ -197,7 +198,7 @@ while run:
 
     #generate powerups
     if iterationcounter % powerup_interval == 0:
-        powerup = Powerup(random.randint(0, screen_width - 25), -25, 50, 50, 1)
+        powerup = Powerup(random.randint(0, screen_width - 25), -50, 50, 50, 1)
         powerups.append(powerup)
 
     #draw and move powerups
@@ -214,9 +215,8 @@ while run:
             plr.shoot_three = True
             iteration = iterationcounter
 
-        if iterationcounter == iteration + 300:
-            plr.shoot_three = False
-            iteration = 0
+    if iterationcounter == int(iteration + 300):
+        plr.shoot_three = False
        
 
     #generate enemies
@@ -239,11 +239,23 @@ while run:
                 enemies.remove(enemy)
                 bullets.remove(bullet)
                 score += 10
-                if highscore < score:
+
+                #heigscore
+                if highscore <= score:
                     highscore = score
-                break
-            
+                    
+                    text = str(highscore)
+
+                    with open(filename, "w") as file:
+                        file.write(text) 
+                break       
         
+        #heighscore
+        with open(filename) as file:
+            content = file.read()
+            highscore = int(content)
+        
+
         enemy_collision = enemy.rect().colliderect(plr.rect())   
         
         if enemy.border_colide() or enemy_collision:
@@ -267,6 +279,7 @@ while run:
             generate_enemies = False
             score = 0
             speed = 1
+            enemy_spawnrate = 200
             plr = Player(0, 0, 0, 0, 0)
 
             kjør = True
